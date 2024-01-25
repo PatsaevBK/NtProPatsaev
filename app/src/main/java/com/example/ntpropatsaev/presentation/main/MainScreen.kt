@@ -2,6 +2,7 @@ package com.example.ntpropatsaev.presentation.main
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -22,12 +23,24 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 fun MainScreen() {
     val mainViewModel = viewModel(modelClass = MainViewModel::class.java)
     val mainScreenState = mainViewModel.screenState.collectAsState(
-        initial = MainScreenState.Initial
+        initial = MainScreenState.Loading
     )
-    val sortOrder = mainViewModel
-    mainViewModel.loadDeals()
     Scaffold {
-        MainScreenContent(mainScreenState = mainScreenState, paddingValues = it)
+        Column {
+            TopMenu(
+                mainScreenState = mainScreenState,
+                onSortOrderClickListener = {
+                    mainViewModel.onSortOrderClick(it)
+                },
+                onUpDownClickListener = {
+                    mainViewModel.onUpDownClick(it)
+                }
+            )
+            MainScreenContent(
+                mainScreenState = mainScreenState,
+                paddingValues = it
+            )
+        }
     }
 
 }
@@ -38,7 +51,7 @@ fun MainScreenContent(
     paddingValues: PaddingValues
 ) {
     when (val currentState = mainScreenState.value) {
-        MainScreenState.Initial -> {
+        MainScreenState.Loading -> {
             Box(
                 modifier = Modifier
                     .fillMaxSize(),

@@ -7,6 +7,6 @@ class NewDealsComeUseCase(
 ) {
 
     operator fun invoke() {
-        repository.newDealsCome()
+        repository.loadDeals()
     }
 }

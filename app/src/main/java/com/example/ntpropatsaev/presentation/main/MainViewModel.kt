@@ -1,44 +1,62 @@
 package com.example.ntpropatsaev.presentation.main
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.ntpropatsaev.data.repository.RepositoryImpl
 import com.example.ntpropatsaev.domain.entity.DealsResult
 import com.example.ntpropatsaev.domain.entity.SortOrder
 import com.example.ntpropatsaev.domain.entity.UpDown
+import com.example.ntpropatsaev.domain.usecases.ChangeSortOrderUseCase
+import com.example.ntpropatsaev.domain.usecases.ChangeUpDownUseCase
 import com.example.ntpropatsaev.domain.usecases.GetDealsUseCase
 import com.example.ntpropatsaev.domain.usecases.NewDealsComeUseCase
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.launch
 
-class MainViewModel(): ViewModel() {
+class MainViewModel() : ViewModel() {
 
     private val repository = RepositoryImpl()
     private val getDealsUseCase = GetDealsUseCase(repository)
     private val newDealsComeUseCase = NewDealsComeUseCase(repository)
+    private val changeSortOrderUseCase = ChangeSortOrderUseCase(repository)
+    private val changeUpDownUseCase = ChangeUpDownUseCase(repository)
 
     private val dealsResult = getDealsUseCase()
 
-    val screenState: Flow<MainScreenState> = dealsResult
+    private val listOfDealsFlow = dealsResult
         .map { it as DealsResult.Success }
         .filter { it.listOfDeals.isNotEmpty() }
-        .map { MainScreenState.MyDealsState(it.listOfDeals) as MainScreenState }
-        .onStart { emit(MainScreenState.Initial) }
-        .onEach { Log.d("MainViewModel", it.toString()) }
 
-    private val _sortOrder = MutableStateFlow(SortOrder.DataChange)
-    val sortOrder: StateFlow<SortOrder>
-        get() = _sortOrder.asStateFlow()
+    val screenState = listOfDealsFlow
+        .map {
+            MainScreenState.MyDealsState(
+                it.listOfDeals,
+                it.sortOrder,
+                it.upDown
+            ) as MainScreenState
+        }
+        .onStart { emit(MainScreenState.Loading) }
 
-    private val _upDown = MutableStateFlow(UpDown.Down)
+    init {
+        loadDeals()
+    }
 
-    fun loadDeals() {
+    private fun loadDeals() {
         newDealsComeUseCase()
     }
+
+    fun onSortOrderClick(sortOrder: SortOrder) {
+        viewModelScope.launch {
+            changeSortOrderUseCase(sortOrder)
+        }
+    }
+
+    fun onUpDownClick(upDown: UpDown) {
+        viewModelScope.launch {
+            changeUpDownUseCase(upDown)
+        }
+    }
+
 }

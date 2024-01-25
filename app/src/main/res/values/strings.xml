@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">NtProPatsaev</string>
+    <string name="deals">Перечень сделок</string>
+    <string name="choose_sort">Выберите фильтр</string>
 </resources>
