@@ -2,7 +2,7 @@ package com.example.ntpropatsaev.domain.usecases
 
 import com.example.ntpropatsaev.domain.repository.Repository
 
-class NewDealsComeUseCase(
+class LoadNewDealsUseCase(
     private val repository: Repository
 ) {
 

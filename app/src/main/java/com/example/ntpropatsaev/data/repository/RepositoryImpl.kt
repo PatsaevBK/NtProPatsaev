@@ -85,20 +85,28 @@ class RepositoryImpl : Repository {
         refreshListInFlow()
     }
 
-    private fun changeSortPattern(list: List<Deal>, sortOrder: SortOrder, upDown: UpDown): List<Deal> {
+    private fun changeSortPattern(
+        list: List<Deal>,
+        sortOrder: SortOrder,
+        upDown: UpDown
+    ): List<Deal> {
         val comparator = when (sortOrder) {
             SortOrder.DATA_CHANGE -> Comparator { t1: Deal, t2: Deal ->
                 t1.timeStamp.compareTo(t2.timeStamp)
             }
+
             SortOrder.INSTRUMENT_NAME -> Comparator { t1: Deal, t2: Deal ->
                 t1.instrumentName.compareTo(t2.instrumentName)
             }
+
             SortOrder.PRICE_OF_DEAL -> Comparator { t1: Deal, t2: Deal ->
                 t1.price.compareTo(t2.price)
             }
+
             SortOrder.AMOUNT_OF_DEAL -> Comparator { t1: Deal, t2: Deal ->
                 t1.amount.compareTo(t2.amount)
             }
+
             SortOrder.SIDE_OF_DEAL -> Comparator { t1: Deal, t2: Deal ->
                 t1.side.compareTo(t2.side)
             }
@@ -107,6 +115,7 @@ class RepositoryImpl : Repository {
             UpDown.UP -> {
                 list.sortedWith(comparator)
             }
+
             UpDown.DOWN -> {
                 list.sortedWith(comparator).reversed()
             }

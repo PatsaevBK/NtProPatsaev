@@ -9,7 +9,7 @@ import com.example.ntpropatsaev.domain.entity.UpDown
 import com.example.ntpropatsaev.domain.usecases.ChangeSortOrderUseCase
 import com.example.ntpropatsaev.domain.usecases.ChangeUpDownUseCase
 import com.example.ntpropatsaev.domain.usecases.GetDealsUseCase
-import com.example.ntpropatsaev.domain.usecases.NewDealsComeUseCase
+import com.example.ntpropatsaev.domain.usecases.LoadNewDealsUseCase
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
@@ -19,17 +19,15 @@ class MainViewModel() : ViewModel() {
 
     private val repository = RepositoryImpl()
     private val getDealsUseCase = GetDealsUseCase(repository)
-    private val newDealsComeUseCase = NewDealsComeUseCase(repository)
+    private val loadNewDealsUseCase = LoadNewDealsUseCase(repository)
     private val changeSortOrderUseCase = ChangeSortOrderUseCase(repository)
     private val changeUpDownUseCase = ChangeUpDownUseCase(repository)
 
     private val dealsResult = getDealsUseCase()
 
-    private val listOfDealsFlow = dealsResult
+    val screenState = dealsResult
         .map { it as DealsResult.Success }
         .filter { it.listOfDeals.isNotEmpty() }
-
-    val screenState = listOfDealsFlow
         .map {
             MainScreenState.MyDealsState(
                 it.listOfDeals,
@@ -44,7 +42,7 @@ class MainViewModel() : ViewModel() {
     }
 
     private fun loadDeals() {
-        newDealsComeUseCase()
+        loadNewDealsUseCase()
     }
 
     fun onSortOrderClick(sortOrder: SortOrder) {
