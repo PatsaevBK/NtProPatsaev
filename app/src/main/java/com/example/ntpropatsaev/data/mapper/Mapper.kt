@@ -11,7 +11,6 @@ import kotlin.math.ceil
 import kotlin.math.floor
 
 
-
 fun List<Server.Deal>.mapDealToDealDbModel() = this.map {
     DealDbModel(
         id = it.id,
@@ -33,6 +32,15 @@ fun List<DealDbModel>.mapDealDbModelToDealDomain() = this.map {
         side = it.side.convertSide()
     )
 }
+
+fun DealDbModel.mapDealDbModelToDealDomain() = DealDomain(
+    id = this.id,
+    date = this.date.convertTimestampToTime(),
+    instrumentName = this.instrumentName,
+    price = ceil(this.price * 100) / 100,
+    amount = floor(this.amount),
+    side = this.side.convertSide()
+)
 
 private fun Long.convertTimestampToTime(): String {
     val date = Date(this)

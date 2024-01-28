@@ -1,7 +1,6 @@
 package com.example.ntpropatsaev.presentation.main
 
 import android.app.Application
-import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.ntpropatsaev.data.repository.RepositoryImpl
@@ -12,10 +11,9 @@ import com.example.ntpropatsaev.domain.usecases.ChangeSortOrderUseCase
 import com.example.ntpropatsaev.domain.usecases.ChangeUpDownUseCase
 import com.example.ntpropatsaev.domain.usecases.GetDealsUseCase
 import com.example.ntpropatsaev.domain.usecases.LoadNewDealsUseCase
-import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combineTransform
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 
 class MainViewModel(
@@ -30,16 +28,13 @@ class MainViewModel(
 
     val screenState = getDealsUseCase()
         .map { it as DealsResult.Success }
-        .filter { it.listOfDeals.isNotEmpty() }
-        .onEach { Log.d("MainViewModel", "size of list = ${it.listOfDeals.size}") }
         .map {
             MainScreenState.MyDealsState(
-                it.listOfDeals,
+                it.pagingData,
                 it.sortType,
                 it.sortOrder
             ) as MainScreenState
         }
-        .onStart { emit(MainScreenState.Loading) }
 
 
     init {

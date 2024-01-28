@@ -1,5 +1,6 @@
 package com.example.ntpropatsaev.domain.repository
 
+import androidx.paging.PagingData
 import com.example.ntpropatsaev.domain.entity.DealDomain
 import com.example.ntpropatsaev.domain.entity.DealsResult
 import com.example.ntpropatsaev.domain.entity.SortOrder
