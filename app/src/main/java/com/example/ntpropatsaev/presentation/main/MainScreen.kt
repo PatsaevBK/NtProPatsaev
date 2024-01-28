@@ -1,5 +1,7 @@
 package com.example.ntpropatsaev.presentation.main
 
+import androidx.compose.foundation.gestures.rememberScrollableState
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -8,20 +10,24 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.ntpropatsaev.presentation.ViewModelFactory
 
 @Composable
 fun MainScreen() {
-    val mainViewModel = viewModel(modelClass = MainViewModel::class.java)
+    val factory = remember { ViewModelFactory() }
+    val mainViewModel: MainViewModel = viewModel(factory = factory)
     val mainScreenState = mainViewModel.screenState.collectAsState(
         initial = MainScreenState.Loading
     )
@@ -74,14 +80,14 @@ fun MainScreenContent(
 fun MyDealsShow(state: MainScreenState.MyDealsState, paddingValues: PaddingValues) {
     LazyColumn(
         contentPadding = PaddingValues(8.dp, 16.dp),
-        verticalArrangement = Arrangement.spacedBy(4.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
         modifier = Modifier.padding(paddingValues)
     ) {
         items(
-            items = state.listOfMyDeal,
+            items = state.listOfDealDomain,
             key = { it.id }
         ) {
-            DealCard(myDeal = it)
+            DealCard(dealDomain = it)
         }
     }
 }

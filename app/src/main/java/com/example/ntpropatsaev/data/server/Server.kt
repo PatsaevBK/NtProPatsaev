@@ -1,4 +1,4 @@
-package com.example.ntpropatsaev.data
+package com.example.ntpropatsaev.data.server
 
 import android.os.Handler
 import android.os.Looper

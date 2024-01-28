@@ -22,25 +22,25 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.example.ntpropatsaev.R
+import com.example.ntpropatsaev.domain.entity.SortType
 import com.example.ntpropatsaev.domain.entity.SortOrder
-import com.example.ntpropatsaev.domain.entity.UpDown
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TopMenu(
     mainScreenState: State<MainScreenState>,
-    onSortOrderClickListener: (SortOrder) -> Unit,
-    onUpDownClickListener: (UpDown) -> Unit
+    onSortOrderClickListener: (SortType) -> Unit,
+    onUpDownClickListener: (SortOrder) -> Unit
 ) {
     val screenState = mainScreenState.value
-    val sortOrder = when (screenState) {
-        MainScreenState.Loading -> SortOrder.DATA_CHANGE
-        is MainScreenState.MyDealsState -> screenState.sortOrder
+    val sortType = when (screenState) {
+        MainScreenState.Loading -> SortType.DATA_CHANGE
+        is MainScreenState.MyDealsState -> screenState.sortType
     }
     val iconDesc = when (screenState) {
         MainScreenState.Loading -> R.drawable.baseline_arrow_downward_24
         is MainScreenState.MyDealsState -> {
-            if (screenState.upDown == UpDown.UP) {
+            if (screenState.sortOrder == SortOrder.ASC) {
                 R.drawable.baseline_arrow_upward_24
             } else R.drawable.baseline_arrow_downward_24
         }
@@ -49,10 +49,10 @@ fun TopMenu(
         mutableStateOf(false)
     }
     val orders = remember {
-        SortOrder.entries
+        SortType.entries
     }
     var selectedOrder by remember {
-        mutableStateOf(sortOrder.nameOfOrder)
+        mutableStateOf(sortType.nameOfOrder)
     }
 
     Row(
@@ -98,7 +98,7 @@ fun TopMenu(
         }
         IconButton(onClick = {
             val next =
-                if (iconDesc == R.drawable.baseline_arrow_downward_24) UpDown.UP else UpDown.DOWN
+                if (iconDesc == R.drawable.baseline_arrow_downward_24) SortOrder.ASC else SortOrder.DESC
             onUpDownClickListener(next)
         }) {
             Icon(painter = painterResource(id = iconDesc), contentDescription = null)
