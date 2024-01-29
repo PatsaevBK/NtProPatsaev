@@ -19,12 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.paging.PagingData
-import androidx.paging.compose.collectAsLazyPagingItems
-import com.example.ntpropatsaev.domain.entity.DealDomain
 import com.example.ntpropatsaev.presentation.ViewModelFactory
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
 
 @Composable
 fun MainScreen() {
@@ -69,7 +64,7 @@ fun MainScreenContent(
             }
         }
 
-        is MainScreenState.MyDealsState -> {
+        is MainScreenState.Success -> {
             MyDealsShow(
                 currentState,
                 paddingValues
@@ -79,17 +74,17 @@ fun MainScreenContent(
 }
 
 @Composable
-fun MyDealsShow(state: MainScreenState.MyDealsState, paddingValues: PaddingValues) {
+fun MyDealsShow(state: MainScreenState.Success, paddingValues: PaddingValues) {
     LazyColumn(
         contentPadding = PaddingValues(8.dp, 16.dp),
         verticalArrangement = Arrangement.spacedBy(6.dp),
         modifier = Modifier.padding(paddingValues)
     ) {
         items(
-            items = state.listOfDealDomain,
+            items = state.listOfDeal,
             key = { it.id }
         ) {
-            DealCard(dealDomain = it)
+            DealCard(deal = it)
         }
     }
 }

@@ -8,6 +8,6 @@ class ChangeUpDownUseCase(
 ) {
 
     suspend operator fun invoke(sortOrder: SortOrder) {
-        repository.changeSorOrder(sortOrder)
+        repository.changeSortOrder(sortOrder)
     }
 }

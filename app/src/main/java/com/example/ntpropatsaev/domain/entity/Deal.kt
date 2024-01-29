@@ -3,7 +3,7 @@ package com.example.ntpropatsaev.domain.entity
 import androidx.compose.runtime.Immutable
 
 @Immutable
-data class DealDomain(
+data class Deal(
     val id: Long,
     val date: String,
     val instrumentName: String,

@@ -2,7 +2,8 @@ package com.example.ntpropatsaev.data.mapper
 
 import com.example.ntpropatsaev.data.database.DealDbModel
 import com.example.ntpropatsaev.data.server.Server
-import com.example.ntpropatsaev.domain.entity.DealDomain
+import com.example.ntpropatsaev.domain.entity.Deal
+import java.sql.Timestamp
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -11,7 +12,7 @@ import kotlin.math.ceil
 import kotlin.math.floor
 
 
-fun List<Server.Deal>.mapDealToDealDbModel() = this.map {
+fun List<Server.DealDto>.mapDealDtoToDealDbModel() = this.map {
     DealDbModel(
         id = it.id,
         date = it.timeStamp.time,
@@ -22,8 +23,8 @@ fun List<Server.Deal>.mapDealToDealDbModel() = this.map {
     )
 }
 
-fun List<DealDbModel>.mapDealDbModelToDealDomain() = this.map {
-    DealDomain(
+fun List<DealDbModel>.mapDealDbModelToDeal() = this.map {
+    Deal(
         id = it.id,
         date = it.date.convertTimestampToTime(),
         instrumentName = it.instrumentName,
@@ -33,7 +34,7 @@ fun List<DealDbModel>.mapDealDbModelToDealDomain() = this.map {
     )
 }
 
-fun DealDbModel.mapDealDbModelToDealDomain() = DealDomain(
+fun DealDbModel.mapDealDbModelToDeal() = Deal(
     id = this.id,
     date = this.date.convertTimestampToTime(),
     instrumentName = this.instrumentName,
@@ -43,24 +44,25 @@ fun DealDbModel.mapDealDbModelToDealDomain() = DealDomain(
 )
 
 private fun Long.convertTimestampToTime(): String {
-    val date = Date(this)
-    val pattern = "dd.mm.yy HH:mm"
+    val stamp = Timestamp(this)
+    val date = Date(stamp.time)
+    val pattern = "dd.MM.yy HH:mm:ss"
     val simpleDateFormat = SimpleDateFormat(pattern, Locale.getDefault())
     simpleDateFormat.timeZone = TimeZone.getDefault()
     return simpleDateFormat.format(date)
 }
 
-private fun Server.Deal.Side.convertSide(): DealDomain.Side {
+private fun Server.DealDto.Side.convertSide(): Deal.Side {
     return when (this) {
-        Server.Deal.Side.SELL -> DealDomain.Side.SELL
-        Server.Deal.Side.BUY -> DealDomain.Side.BUY
+        Server.DealDto.Side.SELL -> Deal.Side.SELL
+        Server.DealDto.Side.BUY -> Deal.Side.BUY
     }
 }
 
-private fun String.convertSide(): DealDomain.Side {
+private fun String.convertSide(): Deal.Side {
     return when (this) {
-        DealDomain.Side.SELL.name -> DealDomain.Side.SELL
-        DealDomain.Side.BUY.name -> DealDomain.Side.BUY
+        Deal.Side.SELL.name -> Deal.Side.SELL
+        Deal.Side.BUY.name -> Deal.Side.BUY
         else -> throw IllegalStateException("Don't know what a side $this")
     }
 }

@@ -1,7 +1,5 @@
 package com.example.ntpropatsaev.domain.repository
 
-import androidx.paging.PagingData
-import com.example.ntpropatsaev.domain.entity.DealDomain
 import com.example.ntpropatsaev.domain.entity.DealsResult
 import com.example.ntpropatsaev.domain.entity.SortOrder
 import com.example.ntpropatsaev.domain.entity.SortType
@@ -15,5 +13,5 @@ interface Repository {
 
     suspend fun changeSortType(sortType: SortType)
 
-    suspend fun changeSorOrder(sortOrder: SortOrder)
+    suspend fun changeSortOrder(sortOrder: SortOrder)
 }

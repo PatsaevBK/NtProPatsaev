@@ -30,25 +30,25 @@ class Server {
         "EUR/USD_TN",
     )
 
-    fun subscribeToDeals(callback: (List<Deal>) -> Unit) {
+    fun subscribeToDeals(callback: (List<DealDto>) -> Unit) {
         val currentTimeStamp = Date()
 
         processScope.launch {
-            var deals = mutableListOf<Deal>()
+            var dealDtos = mutableListOf<DealDto>()
             val dealsCount = (1_000_000L..1_001_000L).random()
             val dealsCountInPacket = 1_000
             var j = 0
 
             for (i in 0..dealsCount) {
-                val deal = Deal(
+                val dealDto = DealDto(
                     id = i,
                     timeStamp = Date(currentTimeStamp.time + i),
                     instrumentName = instrumentNames.shuffled().first(),
                     price = getRandom(min = 60, max = 70),
                     amount = getRandom(min = 1_000_000, max = 50_000_000),
-                    side = Deal.Side.values().toList().shuffled().first(),
+                    side = DealDto.Side.values().toList().shuffled().first(),
                 )
-                deals.add(deal)
+                dealDtos.add(dealDto)
 
                 j += 1
 
@@ -56,13 +56,13 @@ class Server {
                     j = 0
                     val delayValue = (0L..100L).random()
                     delay(delayValue)
-                    val newDeals = deals
+                    val newDeals = dealDtos
 
                     mainThreadHandler.post {
                         callback(newDeals)
                     }
 
-                    deals = mutableListOf()
+                    dealDtos = mutableListOf()
                 }
             }
         }
@@ -72,7 +72,7 @@ class Server {
         return min + Random.nextDouble() * (max - min)
     }
 
-    data class Deal(
+    data class DealDto(
         val id: Long,
         val timeStamp: Date,
         val instrumentName: String,

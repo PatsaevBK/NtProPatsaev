@@ -35,11 +35,11 @@ fun TopMenu(
     val screenState = mainScreenState.value
     val sortType = when (screenState) {
         MainScreenState.Loading -> SortType.DATA_CHANGE
-        is MainScreenState.MyDealsState -> screenState.sortType
+        is MainScreenState.Success -> screenState.sortType
     }
     val iconDesc = when (screenState) {
         MainScreenState.Loading -> R.drawable.baseline_arrow_downward_24
-        is MainScreenState.MyDealsState -> {
+        is MainScreenState.Success -> {
             if (screenState.sortOrder == SortOrder.ASC) {
                 R.drawable.baseline_arrow_upward_24
             } else R.drawable.baseline_arrow_downward_24

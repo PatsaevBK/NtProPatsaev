@@ -1,33 +1,33 @@
 package com.example.ntpropatsaev.data.repository
 
 import android.app.Application
-import androidx.paging.Pager
-import androidx.paging.PagingConfig
-import androidx.paging.PagingData
-import androidx.paging.map
+import android.util.Log
 import com.example.ntpropatsaev.data.database.AppDataBase
-import com.example.ntpropatsaev.data.database.DealDbModel
-import com.example.ntpropatsaev.data.mapper.mapDealDbModelToDealDomain
-import com.example.ntpropatsaev.data.mapper.mapDealToDealDbModel
+import com.example.ntpropatsaev.data.mapper.mapDealDbModelToDeal
+import com.example.ntpropatsaev.data.mapper.mapDealDtoToDealDbModel
 import com.example.ntpropatsaev.data.server.Server
-import com.example.ntpropatsaev.data.server.Server.Deal
-import com.example.ntpropatsaev.domain.entity.DealDomain
 import com.example.ntpropatsaev.domain.entity.DealsResult
-import com.example.ntpropatsaev.domain.entity.SortType
 import com.example.ntpropatsaev.domain.entity.SortOrder
+import com.example.ntpropatsaev.domain.entity.SortType
 import com.example.ntpropatsaev.domain.repository.Repository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.buffer
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
+import java.util.LinkedList
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class RepositoryImpl(
@@ -39,61 +39,67 @@ class RepositoryImpl(
 
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
 
-    private val mutableListOfDeal = mutableListOf<DealDomain>()
-    private val listOfDeal: List<DealDomain>
-        get() = mutableListOfDeal.toList()
-
-    private var newMyDealList = listOf<Deal>()
-
+    private var dealsSubscription: Job? = null
 
     private var currentSortType = SortType.DATA_CHANGE
 
     private var currentSortOrder = SortOrder.DESC
 
+    private val cashedList = LinkedList<List<Server.DealDto>>()
+
+    private val readyToSaveInDbEvent = MutableSharedFlow<Unit>()
+
     private val optionOfSortFlow = MutableStateFlow(Pair(currentSortType, currentSortOrder))
     private val sortedListDeals = optionOfSortFlow
         .flatMapLatest {
             when (it.first) {
-                SortType.DATA_CHANGE -> {
-                    Pager(
-                        config = PagingConfig(20),
-                    ) {
-                        appDao.getAllSortedByDate(it.second.isAsc)
-                    }.flow
-                }
-
-                SortType.INSTRUMENT_NAME -> TODO()
-                SortType.PRICE_OF_DEAL -> TODO()
-                SortType.AMOUNT_OF_DEAL -> TODO()
-                SortType.SIDE_OF_DEAL -> TODO()
+                SortType.DATA_CHANGE -> appDao.getAllSortedByDate(it.second.isAsc)
+                SortType.INSTRUMENT_NAME -> appDao.getAllSortedByInstrumentName(it.second.isAsc)
+                SortType.PRICE_OF_DEAL -> appDao.getAllSortedByPrice(it.second.isAsc)
+                SortType.AMOUNT_OF_DEAL -> appDao.getAllSortedByAmount(it.second.isAsc)
+                SortType.SIDE_OF_DEAL -> appDao.getAllSortedBySide(it.second.isAsc)
             }
         }
-        .map { value: PagingData<DealDbModel> ->
-            value.map {
-                it.mapDealDbModelToDealDomain()
-            }
-        }
+        .map { it.mapDealDbModelToDeal() }
         .map {
             DealsResult.Success(
-                it,
-                currentSortType,
-                currentSortOrder
+                listDealDbModel = it,
+                sortType = currentSortType,
+                sortOrder = currentSortOrder
             )
         }
 
+    init {
+        coroutineScope.launch {
+            readyToSaveInDbEvent.collect {
+                savePackageToDb()
+            }
+        }
+    }
 
     override fun getDeals(): Flow<DealsResult> {
         return sortedListDeals
     }
 
     override fun loadDeals() {
-        server.subscribeToDeals { dealList ->
-            val job = coroutineScope.launch {
-                val listDealDbModel = dealList.mapDealToDealDbModel()
-                appDao.insertDealsList(listDealDbModel)
+        dealsSubscription = subscribeToDeals()
+            .onEach { dealDtoList ->
+                Log.d("RepositoryImpl", "Cashed new List ${dealDtoList.size}")
+                cashedList.add(dealDtoList)
             }
-        }
+            .onStart {
+                readyToSaveInDbEvent.emit(Unit)
+            }
+            .launchIn(coroutineScope)
     }
+
+    private fun subscribeToDeals(): Flow<List<Server.DealDto>> = callbackFlow {
+        server.subscribeToDeals {
+            Log.d("RepositoryImpl", "Server sends new List ${it.size}")
+            trySend(it)
+        }
+        awaitClose()
+    }.buffer(1000)
 
     override suspend fun changeSortType(sortType: SortType) {
         currentSortType = sortType
@@ -102,10 +108,24 @@ class RepositoryImpl(
         )
     }
 
-    override suspend fun changeSorOrder(sortOrder: SortOrder) {
+    override suspend fun changeSortOrder(sortOrder: SortOrder) {
         currentSortOrder = sortOrder
         optionOfSortFlow.emit(
             Pair(currentSortType, currentSortOrder)
         )
+    }
+
+    private suspend fun savePackageToDb() {
+        do {
+            val listReadyToWrite = mutableListOf<Server.DealDto>()
+            repeat(10) {
+                cashedList.poll()?.let {
+                    listReadyToWrite.addAll(it)
+                }
+            }
+            delay(1000)
+            Log.d("RepositoryImpl", "Write new List in db ${listReadyToWrite.size}")
+            appDao.insertDealsList(listReadyToWrite.mapDealDtoToDealDbModel())
+        } while (cashedList.size > 0)
     }
 }

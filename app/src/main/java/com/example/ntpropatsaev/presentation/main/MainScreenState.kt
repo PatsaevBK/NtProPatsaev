@@ -1,15 +1,16 @@
 package com.example.ntpropatsaev.presentation.main
 
-import androidx.paging.PagingData
-import com.example.ntpropatsaev.domain.entity.DealDomain
+import androidx.compose.runtime.Immutable
+import com.example.ntpropatsaev.domain.entity.Deal
 import com.example.ntpropatsaev.domain.entity.SortType
 import com.example.ntpropatsaev.domain.entity.SortOrder
 
 sealed class MainScreenState {
     data object Loading: MainScreenState()
 
-    data class MyDealsState(
-        val listOfDealDomain: PagingData<DealDomain>,
+    @Immutable
+    data class Success(
+        val listOfDeal: List<Deal>,
         val sortType: SortType,
         val sortOrder: SortOrder
     ): MainScreenState()

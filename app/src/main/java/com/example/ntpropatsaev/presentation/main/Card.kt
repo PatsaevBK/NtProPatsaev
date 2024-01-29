@@ -17,13 +17,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.ntpropatsaev.domain.entity.DealDomain
+import com.example.ntpropatsaev.domain.entity.Deal
 import com.example.ntpropatsaev.ui.theme.NtProPatsaevTheme
 import java.text.DecimalFormat
 
 @Composable
 fun DealCard(
-    dealDomain: DealDomain
+    deal: Deal
 ) {
     Card(
         elevation = CardDefaults.cardElevation(3.dp)
@@ -35,20 +35,20 @@ fun DealCard(
                 .padding(8.dp)
         ) {
             Column {
-                Text(text = dealDomain.instrumentName, fontSize = 20.sp)
+                Text(text = deal.instrumentName, fontSize = 20.sp)
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(text = dealDomain.date)
+                Text(text = deal.date)
             }
             Column(
                 horizontalAlignment = Alignment.End
             ) {
-                val color = when (dealDomain.side) {
-                    DealDomain.Side.SELL -> Color.Red
-                    DealDomain.Side.BUY -> Color.Green
+                val color = when (deal.side) {
+                    Deal.Side.SELL -> Color.Red
+                    Deal.Side.BUY -> Color.Green
                 }
-                Text(text = "${dealDomain.price} $", color = color, fontSize = 20.sp)
+                Text(text = "${deal.price} $", color = color, fontSize = 20.sp)
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(text = "${DecimalFormat("#").format(dealDomain.amount)} шт.", color = Color.Gray)
+                Text(text = "${DecimalFormat("#").format(deal.amount)} шт.", color = Color.Gray)
             }
         }
     }
@@ -57,15 +57,15 @@ fun DealCard(
 @Composable
 @Preview
 private fun PreviewCard() {
-    val dealDomain = DealDomain(
+    val deal = Deal(
         0,
         "24.01.2024",
         "Alibaba",
         172.13,
         150.0,
-        DealDomain.Side.BUY
+        Deal.Side.BUY
     )
     NtProPatsaevTheme {
-        DealCard(dealDomain = dealDomain)
+        DealCard(deal = deal)
     }
 }
