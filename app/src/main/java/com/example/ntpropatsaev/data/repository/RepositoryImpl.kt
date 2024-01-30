@@ -3,6 +3,7 @@ package com.example.ntpropatsaev.data.repository
 import android.app.Application
 import android.util.Log
 import com.example.ntpropatsaev.data.database.AppDataBase
+import com.example.ntpropatsaev.data.database.NtProDao
 import com.example.ntpropatsaev.data.mapper.mapDealDbModelToDeal
 import com.example.ntpropatsaev.data.mapper.mapDealDtoToDealDbModel
 import com.example.ntpropatsaev.data.server.Server
@@ -28,14 +29,13 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import java.util.LinkedList
+import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class RepositoryImpl(
-    private val application: Application
+class RepositoryImpl @Inject constructor(
+    private val server: Server,
+    private val appDao: NtProDao
 ) : Repository {
-
-    private val server = Server()
-    private val appDao = AppDataBase.getInstance(application).ntProDao()
 
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
 
@@ -115,10 +115,14 @@ class RepositoryImpl(
         )
     }
 
+    override suspend fun clearDb() {
+        appDao.clearDealDbModel()
+    }
+
     private suspend fun savePackageToDb() {
         do {
             val listReadyToWrite = mutableListOf<Server.DealDto>()
-            repeat(10) {
+            repeat(50) {
                 cashedList.poll()?.let {
                     listReadyToWrite.addAll(it)
                 }

@@ -8,8 +8,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.random.Random
 import java.util.*
+import javax.inject.Inject
 
-class Server {
+class Server @Inject constructor() {
     private val mainThreadHandler = Handler(Looper.getMainLooper())
     private val processScope = CoroutineScope(Dispatchers.Default)
 

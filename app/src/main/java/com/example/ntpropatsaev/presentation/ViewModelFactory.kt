@@ -2,16 +2,14 @@ package com.example.ntpropatsaev.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
-import androidx.lifecycle.viewmodel.CreationExtras
-import com.example.ntpropatsaev.presentation.main.MainViewModel
+import javax.inject.Inject
+import javax.inject.Provider
 
-class ViewModelFactory() : ViewModelProvider.Factory {
+class ViewModelFactory @Inject constructor(
+    private val viewModelProvidersMap: @JvmSuppressWildcards Map<Class<out ViewModel>, Provider<ViewModel>>
+) : ViewModelProvider.Factory {
 
-    override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
-        val application = checkNotNull(extras[APPLICATION_KEY])
-        return MainViewModel(
-            application
-        ) as T
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        return viewModelProvidersMap[modelClass]?.get() as T
     }
 }

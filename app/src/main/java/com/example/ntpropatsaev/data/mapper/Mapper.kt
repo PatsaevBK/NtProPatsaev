@@ -44,8 +44,7 @@ fun DealDbModel.mapDealDbModelToDeal() = Deal(
 )
 
 private fun Long.convertTimestampToTime(): String {
-    val stamp = Timestamp(this)
-    val date = Date(stamp.time)
+    val date = Date(this)
     val pattern = "dd.MM.yy HH:mm:ss"
     val simpleDateFormat = SimpleDateFormat(pattern, Locale.getDefault())
     simpleDateFormat.timeZone = TimeZone.getDefault()

@@ -14,4 +14,6 @@ interface Repository {
     suspend fun changeSortType(sortType: SortType)
 
     suspend fun changeSortOrder(sortOrder: SortOrder)
+
+    suspend fun clearDb()
 }

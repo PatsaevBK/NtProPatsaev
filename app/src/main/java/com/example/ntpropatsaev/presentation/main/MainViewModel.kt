@@ -1,30 +1,36 @@
 package com.example.ntpropatsaev.presentation.main
 
-import android.app.Application
 import android.util.Log
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.ntpropatsaev.data.repository.RepositoryImpl
 import com.example.ntpropatsaev.domain.entity.DealsResult
 import com.example.ntpropatsaev.domain.entity.SortType
 import com.example.ntpropatsaev.domain.entity.SortOrder
 import com.example.ntpropatsaev.domain.usecases.ChangeSortOrderUseCase
-import com.example.ntpropatsaev.domain.usecases.ChangeUpDownUseCase
+import com.example.ntpropatsaev.domain.usecases.ChangeSortTypeUseCase
 import com.example.ntpropatsaev.domain.usecases.GetDealsUseCase
 import com.example.ntpropatsaev.domain.usecases.LoadNewDealsUseCase
+import com.example.ntpropatsaev.extentions.mergeWith
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class MainViewModel(
-    private val application: Application
-) : AndroidViewModel(application) {
+class MainViewModel @Inject constructor(
+    private val getDealsUseCase: GetDealsUseCase,
+    private val loadNewDealsUseCase: LoadNewDealsUseCase,
+    private val changeSortOrderUseCase: ChangeSortOrderUseCase,
+    private val changeSortTypeUseCase: ChangeSortTypeUseCase
+) : ViewModel() {
 
-    private val repository = RepositoryImpl(application)
-    private val getDealsUseCase = GetDealsUseCase(repository)
-    private val loadNewDealsUseCase = LoadNewDealsUseCase(repository)
-    private val changeSortOrderUseCase = ChangeSortOrderUseCase(repository)
-    private val changeUpDownUseCase = ChangeUpDownUseCase(repository)
+    private val loadingStateEvent = MutableSharedFlow<Unit>()
+    private val loadingState = flow<MainScreenState> {
+        loadingStateEvent.collect {
+            emit(MainScreenState.Loading)
+        }
+    }
 
     val screenState = getDealsUseCase()
         .map { it as DealsResult.Success }
@@ -36,26 +42,23 @@ class MainViewModel(
                 it.sortOrder
             ) as MainScreenState
         }
+        .mergeWith(loadingState)
 
 
     init {
-        loadDeals()
-    }
-
-    private fun loadDeals() {
         loadNewDealsUseCase()
     }
 
     fun onSortOrderClick(sortType: SortType) {
         viewModelScope.launch {
+            loadingStateEvent.emit(Unit)
             changeSortOrderUseCase(sortType)
         }
     }
 
-    fun onUpDownClick(sortOrder: SortOrder) {
+    fun onChangeTypeClick(sortOrder: SortOrder) {
         viewModelScope.launch {
-            changeUpDownUseCase(sortOrder)
+            changeSortTypeUseCase(sortOrder)
         }
     }
-
 }
