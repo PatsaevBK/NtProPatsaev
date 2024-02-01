@@ -1,11 +1,9 @@
 package com.example.ntpropatsaev.presentation.main
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.ntpropatsaev.domain.entity.DealsResult
-import com.example.ntpropatsaev.domain.entity.SortType
 import com.example.ntpropatsaev.domain.entity.SortOrder
+import com.example.ntpropatsaev.domain.entity.SortType
 import com.example.ntpropatsaev.domain.usecases.ChangeSortOrderUseCase
 import com.example.ntpropatsaev.domain.usecases.ChangeSortTypeUseCase
 import com.example.ntpropatsaev.domain.usecases.GetDealsUseCase
@@ -14,7 +12,6 @@ import com.example.ntpropatsaev.extentions.mergeWith
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -33,14 +30,12 @@ class MainViewModel @Inject constructor(
     }
 
     val screenState = getDealsUseCase()
-        .map { it as DealsResult.Success }
-        .onEach { Log.d("MainViewModel", "Paint list of ${it.listDealDbModel.size}") }
         .map {
             MainScreenState.Success(
                 it.listDealDbModel,
                 it.sortType,
                 it.sortOrder
-            ) as MainScreenState
+            )
         }
         .mergeWith(loadingState)
 

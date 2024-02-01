@@ -18,17 +18,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.ntpropatsaev.domain.entity.Deal
 import com.example.ntpropatsaev.getApplicationComponent
 
 @Composable
 fun MainScreen() {
     val applicationComponent = getApplicationComponent()
-    val mainViewModel: MainViewModel = viewModel(factory = applicationComponent.getViewModelFactory())
+    val mainViewModel: MainViewModel =
+        viewModel(factory = applicationComponent.getViewModelFactory())
     val mainScreenState = mainViewModel.screenState.collectAsState(
         initial = MainScreenState.Loading
     )
-    Scaffold {
-        Column {
+    Scaffold(
+        topBar = {
             TopMenu(
                 mainScreenState = mainScreenState,
                 onSortOrderClickListener = {
@@ -38,6 +40,9 @@ fun MainScreen() {
                     mainViewModel.onChangeTypeClick(it)
                 }
             )
+        }
+    ) {
+        Column {
             MainScreenContent(
                 mainScreenState = mainScreenState,
                 paddingValues = it
@@ -64,8 +69,8 @@ fun MainScreenContent(
         }
 
         is MainScreenState.Success -> {
-            MyDealsShow(
-                currentState,
+            ShowDeals(
+                currentState.listOfDeal,
                 paddingValues
             )
         }
@@ -73,14 +78,14 @@ fun MainScreenContent(
 }
 
 @Composable
-fun MyDealsShow(state: MainScreenState.Success, paddingValues: PaddingValues) {
+fun ShowDeals(deals: List<Deal>, paddingValues: PaddingValues) {
     LazyColumn(
         contentPadding = PaddingValues(8.dp, 16.dp),
         verticalArrangement = Arrangement.spacedBy(6.dp),
         modifier = Modifier.padding(paddingValues)
     ) {
         items(
-            items = state.listOfDeal,
+            items = deals,
             key = { it.id }
         ) {
             DealCard(deal = it)
